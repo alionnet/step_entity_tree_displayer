@@ -180,11 +180,20 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth = 0
 	printNTabs(iDepth);
 	auto entity = entities.find(iNum);
 
-	std::cout << "Entity #" << entity->first << " (" << entity->second.name << ")"  << (entity->second.references.size() > 0 ? " refrences:" : "") << std::endl;
-
-	for (int iRef : entity->second.references)
+	if (entity != entities.end()) 
 	{
-		printEntity(entities, iRef, iDepth + 1);
+		std::cout << "Entity #" << entity->first << " (" << entity->second.name << ")" << (entity->second.references.size() > 0 ? " refrences:" : "") << std::endl;
+
+		for (int iRef : entity->second.references)
+		{
+			printEntity(entities, iRef, iDepth + 1);
+		}
+	}
+	else {
+#ifdef DEBUG
+		std::cerr << "Error: Entity #" << iNum << "not found. Something probably went very wrong." << std::endl;
+#endif // DEBUG
+
 	}
 }
 
@@ -229,6 +238,14 @@ int main(int argc, char* argv[]) {
 		{
 			++iLineNum;
 			std::getline(ifsFile, sLine);
+
+			//Next line is also part of current line
+			while (sLine[sLine.size() - 1] != ';') {
+				std::string sNextLine;
+				std::getline(ifsFile, sNextLine);
+				sLine += sNextLine;
+				++iLineNum;
+			}
 
 			//STEP-files should follow the standard defined by ISO-10303-21, and have this token on their first line
 			if (iLineNum == 1 && !std::regex_match(sLine, std::regex("ISO-10303-21;[ \t\n]*"))) 
