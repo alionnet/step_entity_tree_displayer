@@ -11,4 +11,4 @@ To use it, simply pass the name of the file to read as a command line argument. 
 
 ## Limits
 SETD currently does not support entity defined as lists (e.g. '#12=(TOTO(''), TITI (*))'). It will display that list as a single entity whose name is the first name it encountered.
-Also, for files with a few thousands or more entities, your standard output may not have enough lines to display all of them (And even then it is quite hard to find what you are looking for)
+Also, for files with a few thousands or more entities, your standard output may not have enough lines to display all of them (And even then it is quite hard to find what you are looking for).

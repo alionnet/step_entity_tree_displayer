@@ -3,7 +3,6 @@
 #include <sstream>
 #include <regex>
 
-#include <vector>
 #include <set>
 #include <map>
 
@@ -240,7 +239,7 @@ int main(int argc, char* argv[]) {
 			std::getline(ifsFile, sLine);
 
 			//Next line is also part of current line
-			while (sLine[sLine.size() - 1] != ';') {
+			while (sLine.size() == 0 || sLine[sLine.size() - 1] != ';') {
 				std::string sNextLine;
 				std::getline(ifsFile, sNextLine);
 				sLine += sNextLine;
@@ -266,8 +265,8 @@ int main(int argc, char* argv[]) {
 			//Look for end of DATA section
 			if (std::regex_match(sLine, std::regex("ENDSEC;[ \t]*"))) break;
 
-			//Skip comments and empty lines
-			if (sLine.size() == 0 || (sLine[0] == '/' && sLine[1] == '*')) continue;
+			//Skip comments
+			if (sLine[0] == '/' && sLine[1] == '*') continue;
 
 			if (!std::regex_match(sLine, entityRegex)) 
 			{
