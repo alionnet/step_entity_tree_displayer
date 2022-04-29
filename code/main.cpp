@@ -241,10 +241,11 @@ void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::str
 			continue;
 		}
 		//Not a character allowed in a name --> stop parsing name and save it
-		else if (bParsingName && luParDepth == 1)
+		//Either we are at depth 1 (general case) or at depth 2 if current char is a '('
+		else if (bParsingName && (luParDepth == 1 || (luParDepth == 2 && c == '(')))
 		{
 			bParsingName = false;
-			eSavedEntity.name = sName;
+			eSavedEntity.name += sName;
 			sName = "";
 			continue;
 		}
