@@ -7,6 +7,18 @@
 #include <map>
 
 
+bool isLastNonSpaceSemiColon(std::string sLine) {
+	std::size_t iLen = sLine.size();
+	for (long long int i = iLen-1; i >= 0; --i) 
+	{
+		if (sLine[i] == ' ' || sLine[i] == '\t' || sLine[i] == '\r' || sLine[i] == '\n') continue;
+
+		if (sLine[i] == ';') return true;
+
+		return false;
+	}
+}
+
 struct Entity {
 	std::string name;
 	std::set<int> references;
@@ -190,7 +202,7 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth = 0
 	}
 	else {
 #ifdef DEBUG
-		std::cerr << "Error: Entity #" << iNum << "not found. Something probably went very wrong." << std::endl;
+		std::cerr << "Error: Entity #" << iNum << " not found. Something probably went very wrong." << std::endl;
 #endif // DEBUG
 
 	}
@@ -237,17 +249,18 @@ int main(int argc, char* argv[]) {
 		{
 			++iLineNum;
 			std::getline(ifsFile, sLine);
+			std::string sSavedLine;
+			sSavedLine += sLine;
 
 			//Next line is also part of current line
-			while (sLine.size() == 0 || sLine[sLine.size() - 1] != ';') {
-				std::string sNextLine;
-				std::getline(ifsFile, sNextLine);
-				sLine += sNextLine;
+			while (sLine.size() == 0 || !isLastNonSpaceSemiColon(sLine)) {
+				std::getline(ifsFile, sLine);
+				sSavedLine += sLine;
 				++iLineNum;
 			}
 
 			//STEP-files should follow the standard defined by ISO-10303-21, and have this token on their first line
-			if (iLineNum == 1 && !std::regex_match(sLine, std::regex("ISO-10303-21;[ \t\n]*"))) 
+			if (iLineNum == 1 && !std::regex_match(sSavedLine, std::regex("ISO-10303-21;[ \t\n]*"))) 
 			{
 				std::cerr << "First line does not match expected token ISO-10303-21;" << std::endl;
 				ifsFile.close();
@@ -258,29 +271,29 @@ int main(int argc, char* argv[]) {
 			if (!data) 
 			{
 				//Look for start of DATA section
-				data = std::regex_match(sLine,std::regex("^DATA;[ \t\n]*"));
+				data = std::regex_match(sSavedLine,std::regex("^DATA;[ \t\n]*"));
 				continue;
 			}
 
 			//Look for end of DATA section
-			if (std::regex_match(sLine, std::regex("ENDSEC;[ \t]*"))) break;
+			if (std::regex_match(sSavedLine, std::regex("ENDSEC;[ \t]*"))) break;
 
 			//Skip comments
-			if (sLine[0] == '/' && sLine[1] == '*') continue;
+			if (sSavedLine[0] == '/' && sSavedLine[1] == '*') continue;
 
-			if (!std::regex_match(sLine, entityRegex)) 
+			if (!std::regex_match(sSavedLine, entityRegex)) 
 			{
-				std::cout << "Skipping line " << iLineNum << " not recognized as entity : \"" << sLine << "\"" << std::endl;
+				std::cout << "Skipping line " << iLineNum << " not recognized as entity : \"" << sSavedLine << "\"" << std::endl;
 				continue;
 			}
 
 
-			std::pair<int, std::string> infos = entityNumberAndName(sLine);
-			std::set<int> references = entityReferencesTo(sLine);
+			std::pair<int, std::string> infos = entityNumberAndName(sSavedLine);
+			std::set<int> references = entityReferencesTo(sSavedLine);
 
 			if (!addEntity(entityReferences, infos.first, infos.second))
 			{
-				std::cout << "Warning: Redefinition of entity #" << infos.first << " at Line " << iLineNum << ". Data ignored: " << sLine << std::endl;
+				std::cerr << "Warning: Redefinition of entity #" << infos.first << " at Line " << iLineNum << ". Data ignored: " << sSavedLine << std::endl;
 				continue;
 			}
 

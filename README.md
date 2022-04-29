@@ -10,5 +10,6 @@ I am not an expert of STEP format, so it might not work on all cases, but it can
 To use it, simply pass the name of the file to read as a command line argument. On Visual Studio, you might need to use a Debug configuration so that the console does not close by itself.
 
 ## Limits
-SETD currently does not support entity defined as lists (e.g. '#12=(TOTO(''), TITI (*))'). It will display that list as a single entity whose name is the first name it encountered.
+SetD currently does not support entity defined as lists (e.g. '**#12=(FOO(''), BAR (*))**'). It will display that list as a single entity whose name is the first name it encountered. In that previous example, that would be displayed as **Entity #12 (FOO)**
+
 Also, for files with a few thousands or more entities, your standard output may not have enough lines to display all of them (And even then it is quite hard to find what you are looking for).
