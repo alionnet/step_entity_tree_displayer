@@ -3,8 +3,11 @@
 #include <sstream>
 #include <regex>
 
+#include <vector>
 #include <set>
 #include <map>
+
+#define NUMBERLESS -1
 
 
 bool isLastNonSpaceSemiColon(std::string sLine) {
@@ -20,10 +23,25 @@ bool isLastNonSpaceSemiColon(std::string sLine) {
 }
 
 struct Entity {
+public:
+	bool isComplex() const;
+
+private:
+
+public:
 	std::string name;
 	std::set<int> references;
 
+	//Only has content if complex entity
+	std::vector<Entity> leafs;
+
+private:
+	
 };
+
+bool Entity::isComplex() const {
+	return leafs.size() > 0;
+}
 
 bool addEntity(std::map<int,Entity>& entities, int num, std::string sName) 
 {
@@ -52,25 +70,26 @@ std::pair<int,std::string> entityNumberAndName(std::string sLine)
 	std::string num = "";
 	std::string name = "";
 
-	bool parsingNum = false;
-	bool numFound = false;
+	bool bParsingNum = false;
+	bool bNumFound = false;
+	bool bParsingName = false;
+	bool bComplexEntity = false;
 
-	bool parsingName = false;
 	for (char c : sLine) 
 	{
-		if (!numFound)
+		if (!bNumFound)
 		{
 
 			if ('0' <= c && c <= '9') 
 			{
-				if (!parsingNum) parsingNum = true;
+				if (!bParsingNum) bParsingNum = true;
 				num += c;
 				continue;
 			}
-			else if (parsingNum) 
+			else if (bParsingNum) 
 			{
-				parsingNum = false;
-				numFound = true;
+				bParsingNum = false;
+				bNumFound = true;
 				continue;
 			}
 
@@ -80,15 +99,20 @@ std::pair<int,std::string> entityNumberAndName(std::string sLine)
 			}
 		}
 
+		if (bNumFound && !bParsingName && c == '(') {
+			bComplexEntity = true;
+			break;
+		}
+
 		//First character of name must be a capital letters
-		if (('A' <= c && c <= 'Z') && !parsingName) 
+		if (('A' <= c && c <= 'Z') && !bParsingName) 
 		{
 			name += c;
-			parsingName = true;
+			bParsingName = true;
 			continue;
 		}
 		//Otherwise skip to try to find first character of entity name
-		else if (!parsingName) continue;
+		else if (!bParsingName) continue;
 
 		//Allows capital letters, numbers and underscores as part of entity name
 		if (('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '_')
@@ -96,11 +120,13 @@ std::pair<int,std::string> entityNumberAndName(std::string sLine)
 			name += c;
 		}
 		else {
-			parsingName = false;
+			bParsingName = false;
 			break;
 		}
 		
 	}
+
+	if (bComplexEntity) return {std::stoi(num),"C P L X"}; //Should not in theory a name that could belong to a real STEP entity
 
 	return {std::stoi(num),name};
 }
@@ -151,6 +177,94 @@ std::set<int> entityReferencesTo(std::string sLine)
 	return res;
 }
 
+void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::string& sLine) {
+	std::string::size_type szParPos = sLine.find_first_of('(');
+
+	std::size_t luParDepth = 1;
+
+	bool bParsingName = false;
+	bool bParsingReference = false;
+	bool bAlreadyPushed = false;
+
+	std::string sName = "";
+	std::string sRef = "";
+
+	auto eComplexPair = entities.find(iNum);
+	if (eComplexPair == entities.end())
+	{
+#ifdef DEBUG
+		std::cerr << "Error: Entity #" << iNum << " not found. Something went probably very wrong." << std::endl;
+#endif // DEBUG
+		return;
+	}
+
+	Entity& eComplex = eComplexPair->second;
+	Entity eSavedEntity;
+
+	for (std::string::size_type szIdx = szParPos+1; szIdx < sLine.size(); ++szIdx)
+	{
+		char c = sLine[szIdx];
+
+		if (c == '(') ++luParDepth;
+
+		if (!bParsingName && 'A' <= c && c <= 'Z' && luParDepth == 1)
+		{
+			bParsingName = true;
+			sName += c;
+			continue;
+		}
+
+		if (bParsingName && (('A' <= c && c <= 'Z') || c == '_') && luParDepth == 1)
+		{
+			sName += c;
+			continue;
+		}
+		else if (bParsingName && luParDepth == 1)
+		{
+			bParsingName = false;
+			eSavedEntity.name = sName;
+			sName = "";
+			continue;
+		}
+
+
+		if (luParDepth >= 2 && c == '#') 
+		{
+			bParsingReference = true;
+			continue;
+		}
+
+		if (bParsingReference && luParDepth >= 2 && '0' <= c && c <= '9')
+		{
+			sRef += c;
+			continue;
+		}
+		else if (bParsingReference && luParDepth >= 2)
+		{
+			bParsingReference = false;
+			eSavedEntity.references.insert(std::stoi(sRef));
+			sRef = "";
+		}
+
+		if (c == ')')
+		{
+			if (luParDepth == 0) throw std::runtime_error("Ill-formed complex entity: Unmatched closing parenthese.");
+			if (luParDepth >= 2 && !bAlreadyPushed)
+			{
+				eComplex.leafs.push_back(eSavedEntity);
+				bAlreadyPushed = true;
+			}
+			--luParDepth;
+
+			if (luParDepth == 1) {
+				bAlreadyPushed = false;
+			}
+		}
+	}
+
+	if (luParDepth > 0) throw std::runtime_error("Ill-formed complex entity: Unmatched opening parenthese.");
+}
+
 //Returns true if an entity is referenced by another one
 bool isEntityReferenced(const std::map<int, Entity>& entities, int iNum)
 {
@@ -187,18 +301,42 @@ void printNTabs(int n) {
 	}
 }
 
-void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth = 0) {
+void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth = 0);
+
+void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e, int iDepth) {
+	printNTabs(iDepth);
+
+	std::cout << "Numberless Entity (" << e.name << ")" << (e.references.size() > 0 ? " references:" : "") << std::endl;
+	for (int iRef : e.references)
+	{
+		printEntity(toRelay, iRef, iDepth + 1);
+	}
+}
+
+void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth) {
 	printNTabs(iDepth);
 	auto entity = entities.find(iNum);
 
 	if (entity != entities.end()) 
 	{
-		std::cout << "Entity #" << entity->first << " (" << entity->second.name << ")" << (entity->second.references.size() > 0 ? " refrences:" : "") << std::endl;
-
-		for (int iRef : entity->second.references)
+		if (entity->second.isComplex()) 
 		{
-			printEntity(entities, iRef, iDepth + 1);
+			std::cout << "Complex Entity #" << entity->first << " contains: " << std::endl;
+			for (const Entity& e : entity->second.leafs)
+			{
+				printNumberlessEntity(entities, e, iDepth + 1);
+			}
+
+		} else
+		{
+			std::cout << "Entity #" << entity->first << " (" << entity->second.name << ")" << (entity->second.references.size() > 0 ? " refrences:" : "") << std::endl;
+
+			for (int iRef : entity->second.references)
+			{
+				printEntity(entities, iRef, iDepth + 1);
+			}
 		}
+		
 	}
 	else {
 #ifdef DEBUG
@@ -289,22 +427,37 @@ int main(int argc, char* argv[]) {
 
 
 			std::pair<int, std::string> infos = entityNumberAndName(sSavedLine);
-			std::set<int> references = entityReferencesTo(sSavedLine);
 
-			if (!addEntity(entityReferences, infos.first, infos.second))
+			if (infos.second == "C P L X") 
 			{
-				std::cerr << "Warning: Redefinition of entity #" << infos.first << " at Line " << iLineNum << ". Data ignored: " << sSavedLine << std::endl;
-				continue;
+				if (!addEntity(entityReferences, infos.first, ""))
+				{
+					std::cerr << "Warning: Redefinition of entity #" << infos.first << " at Line " << iLineNum << ". Data ignored: " << sSavedLine << std::endl;
+					continue;
+				}
+
+				parseComplexEntity(entityReferences, infos.first, sSavedLine);
 			}
+			else {
+				std::set<int> references = entityReferencesTo(sSavedLine);
 
-			for (int iRef : references)
-			{
-				bool refAdded = addReferenceToEntity(entityReferences, infos.first, iRef);
+				if (!addEntity(entityReferences, infos.first, infos.second))
+				{
+					std::cerr << "Warning: Redefinition of entity #" << infos.first << " at Line " << iLineNum << ". Data ignored: " << sSavedLine << std::endl;
+					continue;
+				}
+
+				for (int iRef : references)
+				{
+					bool refAdded = addReferenceToEntity(entityReferences, infos.first, iRef);
 #ifdef DEBUG
-				if (!refAdded) std::cerr << "Attemtpting to add reference from non-existing entity #" << infos.first << ". Something went very wrong" << std::endl;
+					if (!refAdded) std::cerr << "Attemtpting to add reference from non-existing entity #" << infos.first << ". Something went very wrong" << std::endl;
 #endif // DEBUG
 
+				}
 			}
+
+			
 
 		}
 	}
