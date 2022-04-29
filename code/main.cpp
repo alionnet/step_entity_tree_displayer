@@ -7,9 +7,9 @@
 #include <set>
 #include <map>
 
-#define NUMBERLESS -1
-
-
+/*
+* @brief Checks if last character on a line which is not a spacing character is a semi-colon
+*/
 bool isLastNonSpaceSemiColon(std::string sLine) {
 	std::size_t iLen = sLine.size();
 	for (long long int i = iLen-1; i >= 0; --i) 
@@ -22,6 +22,9 @@ bool isLastNonSpaceSemiColon(std::string sLine) {
 	}
 }
 
+/*
+* @brief Represents an entity and contains its name and references to other entities
+*/
 struct Entity {
 public:
 	bool isComplex() const;
@@ -33,16 +36,19 @@ public:
 	std::set<int> references;
 
 	//Only has content if complex entity
-	std::vector<Entity> leafs;
+	std::vector<Entity> leaves;
 
 private:
 	
 };
 
 bool Entity::isComplex() const {
-	return leafs.size() > 0;
+	return leaves.size() > 0;
 }
 
+/*
+* @brief Adds an entity to the map of known entities (without any references)
+*/
 bool addEntity(std::map<int,Entity>& entities, int num, std::string sName) 
 {
 	Entity e;
@@ -52,6 +58,9 @@ bool addEntity(std::map<int,Entity>& entities, int num, std::string sName)
 	return entities.insert({num,e}).second;
 }
 
+/*
+* @brief Adds a reference from a given existing entity to another entity (existing or not)
+*/
 bool addReferenceToEntity(std::map<int,Entity>& entities, int iEntityNum, int iReferenceTo) 
 {
 	auto& entity = entities.find(iEntityNum);
@@ -99,6 +108,7 @@ std::pair<int,std::string> entityNumberAndName(std::string sLine)
 			}
 		}
 
+		//If a parenthesis if found before the name starts, it's a complex entity, and will receive a different parsing
 		if (bNumFound && !bParsingName && c == '(') {
 			bComplexEntity = true;
 			break;
@@ -126,12 +136,14 @@ std::pair<int,std::string> entityNumberAndName(std::string sLine)
 		
 	}
 
-	if (bComplexEntity) return {std::stoi(num),"C P L X"}; //Should not in theory a name that could belong to a real STEP entity
+	if (bComplexEntity) return {std::stoi(num),"C P L X"}; //Arbitrary name to indicate a complex entity later on -- could not in theory belong to a real STEP entity
 
 	return {std::stoi(num),name};
 }
 
-//Extracts all entities that are referenced by the entity defined on line sLine
+/*
+* @brief Extracts all entities that are referenced by the entity defined on line sLine
+*/
 std::set<int> entityReferencesTo(std::string sLine)
 {
 	std::set<int> res;
@@ -177,13 +189,19 @@ std::set<int> entityReferencesTo(std::string sLine)
 	return res;
 }
 
+/*
+* @brief Parses a complex entity and adds it all internal entities and their references
+*/
 void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::string& sLine) {
 	std::string::size_type szParPos = sLine.find_first_of('(');
 
+	//Parenthesis depth: allows to know when to look for entity names or references, and as a bonus, to throw exception if an unexpected parenthesis is encountered
 	std::size_t luParDepth = 1;
 
 	bool bParsingName = false;
 	bool bParsingReference = false;
+
+	//True if current entity has already been pushed (avoids duplication on deep parenthesis levels)
 	bool bAlreadyPushed = false;
 
 	std::string sName = "";
@@ -201,12 +219,15 @@ void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::str
 	Entity& eComplex = eComplexPair->second;
 	Entity eSavedEntity;
 
+	//Start after first '(', as complex entity number has already been parsed
 	for (std::string::size_type szIdx = szParPos+1; szIdx < sLine.size(); ++szIdx)
 	{
 		char c = sLine[szIdx];
 
+		//One parenthesis level deeper
 		if (c == '(') ++luParDepth;
 
+		//First character of a name must be a capital letter + we only look for entities in the initial complex entity (depth 1)
 		if (!bParsingName && 'A' <= c && c <= 'Z' && luParDepth == 1)
 		{
 			bParsingName = true;
@@ -219,6 +240,7 @@ void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::str
 			sName += c;
 			continue;
 		}
+		//Not a character allowed in a name --> stop parsing name and save it
 		else if (bParsingName && luParDepth == 1)
 		{
 			bParsingName = false;
@@ -227,7 +249,7 @@ void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::str
 			continue;
 		}
 
-
+		//Encounters a reference at any depth
 		if (luParDepth >= 2 && c == '#') 
 		{
 			bParsingReference = true;
@@ -239,6 +261,7 @@ void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::str
 			sRef += c;
 			continue;
 		}
+		//End of reference number
 		else if (bParsingReference && luParDepth >= 2)
 		{
 			bParsingReference = false;
@@ -248,24 +271,30 @@ void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::str
 
 		if (c == ')')
 		{
-			if (luParDepth == 0) throw std::runtime_error("Ill-formed complex entity: Unmatched closing parenthese.");
+			//One extra closing parenthsis
+			if (luParDepth == 0) throw std::runtime_error("Ill-formed complex entity: Unmatched closing parenthesis.");
+			//Push entity and its references to complex entity leaves
 			if (luParDepth >= 2 && !bAlreadyPushed)
 			{
-				eComplex.leafs.push_back(eSavedEntity);
+				eComplex.leaves.push_back(eSavedEntity);
 				bAlreadyPushed = true;
 			}
 			--luParDepth;
 
+			//Out of current entity
 			if (luParDepth == 1) {
 				bAlreadyPushed = false;
 			}
 		}
 	}
 
-	if (luParDepth > 0) throw std::runtime_error("Ill-formed complex entity: Unmatched opening parenthese.");
+	//Missing closing parenthesis
+	if (luParDepth > 0) throw std::runtime_error("Ill-formed complex entity: Unmatched opening parenthesis.");
 }
 
-//Returns true if an entity is referenced by another one
+/*
+* @brief Returns true if an entity is referenced by another one
+*/
 bool isEntityReferenced(const std::map<int, Entity>& entities, int iNum)
 {
 	for (auto entity : entities)
@@ -281,7 +310,9 @@ bool isEntityReferenced(const std::map<int, Entity>& entities, int iNum)
 	return false;
 }
 
-//Returns all entities which are not referenced by any other one
+/*
+* @brief Returns all entities which are not referenced by any other one
+*/
 std::vector<int> unreferencedEntities(const std::map<int, Entity>& entities) {
 	std::vector<int> res;
 
@@ -293,7 +324,9 @@ std::vector<int> unreferencedEntities(const std::map<int, Entity>& entities) {
 	return res;
 }
 
-//Utility for display readability
+/*
+* @brief Prints n '\t' for display readability
+*/
 void printNTabs(int n) {
 	for (int i = 0; i < n; ++i)
 	{
@@ -301,7 +334,10 @@ void printNTabs(int n) {
 	}
 }
 
+//Forward declaration
+
 void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth = 0);
+
 
 void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e, int iDepth) {
 	printNTabs(iDepth);
@@ -313,6 +349,9 @@ void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e,
 	}
 }
 
+/*
+* @brief Prints an entity (simple or complex)
+*/
 void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth) {
 	printNTabs(iDepth);
 	auto entity = entities.find(iNum);
@@ -322,7 +361,7 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth) {
 		if (entity->second.isComplex()) 
 		{
 			std::cout << "Complex Entity #" << entity->first << " contains: " << std::endl;
-			for (const Entity& e : entity->second.leafs)
+			for (const Entity& e : entity->second.leaves)
 			{
 				printNumberlessEntity(entities, e, iDepth + 1);
 			}
@@ -398,7 +437,7 @@ int main(int argc, char* argv[]) {
 			}
 
 			//STEP-files should follow the standard defined by ISO-10303-21, and have this token on their first line
-			if (iLineNum == 1 && !std::regex_match(sSavedLine, std::regex("ISO-10303-21;[ \t\n]*"))) 
+			if (iLineNum == 1 && !std::regex_match(sSavedLine, std::regex("ISO-10303-21;[ \t\r\n]*"))) 
 			{
 				std::cerr << "First line does not match expected token ISO-10303-21;" << std::endl;
 				ifsFile.close();
@@ -409,7 +448,7 @@ int main(int argc, char* argv[]) {
 			if (!data) 
 			{
 				//Look for start of DATA section
-				data = std::regex_match(sSavedLine,std::regex("^DATA;[ \t\n]*"));
+				data = std::regex_match(sSavedLine,std::regex("^DATA;[ \t\r\n]*"));
 				continue;
 			}
 
