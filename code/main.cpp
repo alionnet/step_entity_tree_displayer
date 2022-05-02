@@ -232,6 +232,8 @@ void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::str
 		{
 			bParsingName = true;
 			sName += c;
+			eSavedEntity.name = "";
+			eSavedEntity.references.empty();
 			continue;
 		}
 
