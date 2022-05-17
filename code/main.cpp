@@ -20,6 +20,8 @@ bool isLastNonSpaceSemiColon(std::string sLine) {
 
 		return false;
 	}
+
+	return false;
 }
 
 /*
@@ -192,7 +194,7 @@ std::set<int> entityReferencesTo(std::string sLine)
 /*
 * @brief Parses a complex entity and adds it all internal entities and their references
 */
-void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::string& sLine) {
+void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::string& sLine, std::set<int> &allReferences) {
 	std::string::size_type szParPos = sLine.find_first_of('(');
 
 	//Parenthesis depth: allows to know when to look for entity names or references, and as a bonus, to throw exception if an unexpected parenthesis is encountered
@@ -268,7 +270,9 @@ void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::str
 		else if (bParsingReference && luParDepth >= 2)
 		{
 			bParsingReference = false;
-			eSavedEntity.references.insert(std::stoi(sRef));
+			int iRef = std::stoi(sRef);
+			eSavedEntity.references.insert(iRef);
+			allReferences.insert(iRef);
 			sRef = "";
 		}
 
@@ -298,30 +302,20 @@ void parseComplexEntity(std::map<int,Entity>& entities, int iNum, const std::str
 /*
 * @brief Returns true if an entity is referenced by another one
 */
-bool isEntityReferenced(const std::map<int, Entity>& entities, int iNum)
+bool isEntityReferenced(const std::map<int, Entity>& entities, int iNum,const std::set<int> &allReferences)
 {
-	for (auto entity : entities)
-	{
-		if (entity.first == iNum) continue;
-
-		for (int iRef : entity.second.references)
-		{
-			if (iRef == iNum) return true;
-		}
-	}
-
-	return false;
+	return allReferences.find(iNum) != allReferences.end();
 }
 
 /*
 * @brief Returns all entities which are not referenced by any other one
 */
-std::vector<int> unreferencedEntities(const std::map<int, Entity>& entities) {
+std::vector<int> unreferencedEntities(const std::map<int, Entity>& entities, const std::set<int> &allReferences) {
 	std::vector<int> res;
 
 	for (auto entity : entities)
 	{
-		if (!isEntityReferenced(entities, entity.first)) res.push_back(entity.first);
+		if (!isEntityReferenced(entities, entity.first,allReferences)) res.push_back(entity.first);
 	}
 
 	return res;
@@ -371,7 +365,7 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth) {
 
 		} else
 		{
-			std::cout << "Entity #" << entity->first << " (" << entity->second.name << ")" << (entity->second.references.size() > 0 ? " refrences:" : "") << std::endl;
+			std::cout << "Entity #" << entity->first << " (" << entity->second.name << ")" << (entity->second.references.size() > 0 ? " references:" : "") << std::endl;
 
 			for (int iRef : entity->second.references)
 			{
@@ -388,8 +382,8 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth) {
 	}
 }
 
-void printEntityTree(const std::map<int, Entity>& entities) {
-	std::vector<int> aiUnref = unreferencedEntities(entities);
+void printEntityTree(const std::map<int, Entity>& entities, const std::set<int> &allReferences) {
+	std::vector<int> aiUnref = unreferencedEntities(entities, allReferences);
 
 	for (int iEntity : aiUnref)
 	{
@@ -422,6 +416,7 @@ int main(int argc, char* argv[]) {
 	std::regex entityRegex = std::regex("#[1-9][0-9]*[ \t]*=[ \t]*.*;[ \t\n]*");
 
 	std::map<int, Entity> entityReferences;
+	std::set<int> allReferences;
 
 	if (ifsFile.is_open()) 
 	{
@@ -478,10 +473,15 @@ int main(int argc, char* argv[]) {
 					continue;
 				}
 
-				parseComplexEntity(entityReferences, infos.first, sSavedLine);
+				parseComplexEntity(entityReferences, infos.first, sSavedLine, allReferences);
 			}
 			else {
 				std::set<int> references = entityReferencesTo(sSavedLine);
+
+				for (int iRef : references) 
+				{
+					allReferences.insert(iRef);
+				}
 
 				if (!addEntity(entityReferences, infos.first, infos.second))
 				{
@@ -508,7 +508,7 @@ int main(int argc, char* argv[]) {
 		return 2;
 	}
 
-	printEntityTree(entityReferences);
+	printEntityTree(entityReferences, allReferences);
 
 	ifsFile.close();
 	return 0;
