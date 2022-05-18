@@ -7,6 +7,9 @@
 #include <set>
 #include <map>
 
+
+#include "Options.h"
+
 /*
 * @brief Checks if last character on a line which is not a spacing character is a semi-colon
 */
@@ -333,46 +336,52 @@ void printNTabs(int n) {
 
 //Forward declaration
 
-void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth = 0);
+void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, const opt::Options& opts);
 
 
-void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e, int iDepth) {
-	printNTabs(iDepth);
-
-	std::cout << "Numberless Entity (" << e.name << ")" << (e.references.size() > 0 ? " references:" : "") << std::endl;
-	for (int iRef : e.references)
+void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e, int iDepth, const opt::Options& opts) {
+	if (!opts.bMaxDepth || (opts.bMaxDepth && iDepth < opts.iMaxDepth))
 	{
-		printEntity(toRelay, iRef, iDepth + 1);
+		printNTabs(iDepth);
+		std::cout << "Numberless Entity (" << e.name << ")" << (e.references.size() > 0 ? " references:" : "") << std::endl;
+		
+		for (int iRef : e.references)
+		{
+			printEntity(toRelay, iRef, iDepth + 1, opts);
+		}
 	}
 }
 
 /*
 * @brief Prints an entity (simple or complex)
 */
-void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth) {
-	printNTabs(iDepth);
+void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, const opt::Options& opts) {
 	auto entity = entities.find(iNum);
 
 	if (entity != entities.end()) 
 	{
-		if (entity->second.isComplex()) 
+		if (!opts.bMaxDepth || (opts.bMaxDepth && iDepth < opts.iMaxDepth))
 		{
-			std::cout << "Complex Entity #" << entity->first << " contains: " << std::endl;
-			for (const Entity& e : entity->second.leaves)
+			printNTabs(iDepth);
+			if (entity->second.isComplex())
 			{
-				printNumberlessEntity(entities, e, iDepth + 1);
+				std::cout << "Complex Entity #" << entity->first << " contains: " << std::endl;
+
+				for (const Entity& e : entity->second.leaves)
+				{
+					printNumberlessEntity(entities, e, iDepth + 1, opts);
+				}
 			}
-
-		} else
-		{
-			std::cout << "Entity #" << entity->first << " (" << entity->second.name << ")" << (entity->second.references.size() > 0 ? " references:" : "") << std::endl;
-
-			for (int iRef : entity->second.references)
+			else
 			{
-				printEntity(entities, iRef, iDepth + 1);
+				std::cout << "Entity #" << entity->first << " (" << entity->second.name << ")" << (entity->second.references.size() > 0 ? " references:" : "") << std::endl;
+
+				for (int iRef : entity->second.references)
+				{						
+					printEntity(entities, iRef, iDepth + 1, opts);
+				}
 			}
 		}
-		
 	}
 	else {
 #ifdef DEBUG
@@ -382,22 +391,25 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth) {
 	}
 }
 
-void printEntityTree(const std::map<int, Entity>& entities, const std::set<int> &allReferences) {
+void printEntityTree(const std::map<int, Entity>& entities, const std::set<int> &allReferences, const opt::Options &opts) {
 	std::vector<int> aiUnref = unreferencedEntities(entities, allReferences);
 
 	for (int iEntity : aiUnref)
 	{
-		printEntity(entities, iEntity);
+		printEntity(entities, iEntity, 0, opts);
 		std::cout << "\\__" << std::endl;
 	}
 }
 
 void usage() {
-	std::cerr << "Usage: ./setv filename" << std::endl;
+	std::cerr << "Usage: ./setv filename [-d maxDepth]" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 2) {
+	opt::Options opts;
+	opts.parseArgs(argc, argv);
+
+	if (opts.bError) {
 		usage();
 		return 1;
 	}
@@ -508,7 +520,7 @@ int main(int argc, char* argv[]) {
 		return 2;
 	}
 
-	printEntityTree(entityReferences, allReferences);
+	printEntityTree(entityReferences, allReferences, opts);
 
 	ifsFile.close();
 	return 0;
