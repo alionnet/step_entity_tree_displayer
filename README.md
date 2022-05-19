@@ -17,4 +17,5 @@ Options can be passed as arguments after the filename. Currently available optio
 SetD will not display any member variables contained by the entities, it will only display references to other entities, whether they are directly a parameter, or in a list in a list in another list, without any visual distinction.
 
 For files with a few thousands or more entities, your standard output may not have enough lines to display all of them (And even then it is quite hard to find what you are looking for). I would advise that you redirect the output to a txt file so everything is available.
+
 Optimization measures have been taken, so SetD should be usable on large files without requiring an unreasonnable amount of time. From my testing, a file of 80 000 lines took around 15 seconds to compute, but if you go too far above I can't guarantee a 'fast' output.
