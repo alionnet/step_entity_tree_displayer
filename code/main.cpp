@@ -343,7 +343,12 @@ void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e,
 	if (!opts.bMaxDepth || (opts.bMaxDepth && iDepth < opts.iMaxDepth))
 	{
 		printNTabs(iDepth);
-		std::cout << "Numberless Entity (" << e.name << ")" << (e.references.size() > 0 ? " references:" : "") << std::endl;
+		std::cout << "Numberless Entity (" << e.name << ")";
+		if (e.references.size() > 0) 
+		{
+			std::cout << " references " << e.references.size() << " entities:";
+		}
+		std::cout << std::endl;
 		
 		for (int iRef : e.references)
 		{
@@ -365,7 +370,7 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, co
 			printNTabs(iDepth);
 			if (entity->second.isComplex())
 			{
-				std::cout << "Complex Entity #" << entity->first << " contains: " << std::endl;
+				std::cout << "Complex Entity #" << entity->first << " contains " << entity->second.references.size() << " entities: " << std::endl;
 
 				for (const Entity& e : entity->second.leaves)
 				{
@@ -374,7 +379,12 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, co
 			}
 			else
 			{
-				std::cout << "Entity #" << entity->first << " (" << entity->second.name << ")" << (entity->second.references.size() > 0 ? " references:" : "") << std::endl;
+				std::cout << "Entity #" << entity->first << " (" << entity->second.name << ")";
+				if (entity->second.references.size() > 0)
+				{
+					std::cout << " references " << entity->second.references.size() << " entities:";
+				}
+				std::cout << std::endl;
 
 				for (int iRef : entity->second.references)
 				{						
