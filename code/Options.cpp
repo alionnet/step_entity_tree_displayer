@@ -1,7 +1,7 @@
 #include "Options.h"
 
 namespace opt {
-	Options::Options() : bMaxDepth(false), iMaxDepth(0), bError(false) {
+	Options::Options() : bMaxDepth(false), iMaxDepth(0), bError(false), bNoDuplicates(false), treated(std::set<int>()) {
 
 	}
 
@@ -33,6 +33,12 @@ namespace opt {
 
 					iMaxDepth = std::stoi(std::string(argv[iArg + 1]));
 					bSkipOne = true;
+					continue;
+				}
+
+				if (sArg == "-n" || sArg == "--noDuplicates") {
+					bNoDuplicates = true;
+					continue;
 				}
 
 			}

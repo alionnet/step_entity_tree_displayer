@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 
+#include <set>
+
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
@@ -17,6 +19,9 @@ namespace opt {
 
 		bool bMaxDepth;
 		int iMaxDepth;
+
+		bool bNoDuplicates;
+		std::set<int> treated;
 
 
 		bool bError;

@@ -336,10 +336,10 @@ void printNTabs(int n) {
 
 //Forward declaration
 
-void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, const opt::Options& opts);
+void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, opt::Options& opts);
 
 
-void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e, int iDepth, const opt::Options& opts) {
+void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e, int iDepth, opt::Options& opts) {
 	if (!opts.bMaxDepth || (opts.bMaxDepth && iDepth < opts.iMaxDepth))
 	{
 		printNTabs(iDepth);
@@ -360,7 +360,7 @@ void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e,
 /*
 * @brief Prints an entity (simple or complex)
 */
-void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, const opt::Options& opts) {
+void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, opt::Options& opts) {
 	auto entity = entities.find(iNum);
 
 	if (entity != entities.end()) 
@@ -370,7 +370,7 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, co
 			printNTabs(iDepth);
 			if (entity->second.isComplex())
 			{
-				std::cout << "Complex Entity #" << entity->first << " contains " << entity->second.references.size() << " entities: " << std::endl;
+				std::cout << "Complex Entity #" << entity->first << " contains " << entity->second.leaves.size() << " entities: " << std::endl;
 
 				for (const Entity& e : entity->second.leaves)
 				{
@@ -386,11 +386,25 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, co
 				}
 				std::cout << std::endl;
 
-				for (int iRef : entity->second.references)
-				{						
-					printEntity(entities, iRef, iDepth + 1, opts);
+				if (!opts.bNoDuplicates || (opts.bNoDuplicates && opts.treated.find(iNum) == opts.treated.end())) 
+				{
+					for (int iRef : entity->second.references)
+					{
+						printEntity(entities, iRef, iDepth + 1, opts);
+					}
+				}
+				else 
+				{
+					printNTabs(iDepth + 1);
+					std::cout << "Already developped" << std::endl;
+					return;
 				}
 			}
+		}
+
+		if (opts.bNoDuplicates) 
+		{
+			opts.treated.insert(iNum);
 		}
 	}
 	else {
@@ -401,7 +415,7 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, co
 	}
 }
 
-void printEntityTree(const std::map<int, Entity>& entities, const std::set<int> &allReferences, const opt::Options &opts) {
+void printEntityTree(const std::map<int, Entity>& entities, const std::set<int> &allReferences, opt::Options &opts) {
 	std::vector<int> aiUnref = unreferencedEntities(entities, allReferences);
 
 	for (int iEntity : aiUnref)

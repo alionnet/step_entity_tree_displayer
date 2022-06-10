@@ -11,7 +11,8 @@ To use it, simply pass the name of the file to read as a command line argument. 
 
 ### Options
 Options can be passed as arguments after the filename. Currently available options are:
-- ```-d maxDepth``` : Limits the depth of the displayed tree to reduce the number of line on large files and ease analysis. Internal treatment and parsing are unchanged, only the output is.
+- ```-d maxDepth```: Limits the depth of the displayed tree to reduce the number of line on large files and ease analysis. Internal treatment and parsing are unchanged, only the output is.
+- ```-n | --noDuplicates```: Prevents the same entity from being developped more than once, to shrink the output on larger files. Internal treatment and parsing are unchanged, only the output is.
 
 ## Limits
 SetD will not display any member variables contained by the entities, it will only display references to other entities, whether they are directly a parameter, or in a list in a list in another list, without any visual distinction.
