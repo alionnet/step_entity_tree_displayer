@@ -92,6 +92,7 @@ std::vector<int> unrefEntitiesReferencing(const EntityMap& entities, const std::
 
 	for (int iEntity : viUnref) 
 	{
+		if (iEntity == iToRef) res.push_back(iEntity);
 		if (isEntityReferencing(entities, iEntity, iToRef))
 		{
 			res.push_back(iEntity);
