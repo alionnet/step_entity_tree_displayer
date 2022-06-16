@@ -8,14 +8,20 @@ I am a beginner with STEP format, so it might not work on all cases, but it can 
 
 ## Usage
 To use it, simply pass the name of the file to read as a command line argument. On Visual Studio, you might need to use a Debug configuration so that the console does not close by itself.
+```./SetD.exe filepath [options]```
 
 ### Options
 Options can be passed as arguments after the filename. Currently available options are:
-- ```-d maxDepth```: Limits the depth of the displayed tree to reduce the number of line on large files and ease analysis. Internal treatment and parsing are unchanged, only the output is.
-- ```-n | --noDuplicates```: Prevents the same entity from being developped more than once, to shrink the output on larger files. Internal treatment and parsing are unchanged, only the output is.
+- ```-d maxDepth```: Limits the depth of the displayed tree to reduce the number of line on large files and ease analysis. 
+- ```-n | --noDuplicates```: Prevents the same entity from being developped more than once, to shrink the output on larger files.
+- ```-i | --filterID  id```: Only displays the trees in which the given entity is referenced.
+- ```-t | --filterType  type```: Only displays the trees from entities of the given type.
+Internal treatment and parsing are unchanged, only the output is.
 
 ## Limits
 SetD will not display any member variables contained by the entities, it will only display references to other entities, whether they are directly a parameter, or in a list in a list in another list, without any visual distinction.
+
+References are displayed in numerical order, and not in the order they actually appear in the STEP file. This is due to the use of sets and maps as a way to provide quicker access to information, since indexes would not mean anything in a vector.
 
 For files with a few thousands or more entities, your standard output may not have enough lines to display all of them (And even then it is quite hard to find what you are looking for). I would advise that you redirect the output to a txt file so everything is available.
 

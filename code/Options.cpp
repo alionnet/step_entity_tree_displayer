@@ -1,7 +1,8 @@
 #include "Options.h"
 
 namespace opt {
-	Options::Options() : bMaxDepth(false), iMaxDepth(0), bError(false), bNoDuplicates(false), treated(std::set<int>()) {
+	Options::Options() : sFileName(""), bMaxDepth(false), iMaxDepth(0), bError(false), bNoDuplicates(false), treated(std::set<int>()),
+	bFilterId(false), iFilterId(0), containingId(std::set<int>()), bFilterType(false), sFilterType(""), ofFilteredType(std::vector<int>()){
 
 	}
 
@@ -39,6 +40,50 @@ namespace opt {
 				if (sArg == "-n" || sArg == "--noDuplicates") {
 					bNoDuplicates = true;
 					continue;
+				}
+
+				if (sArg == "-i" || sArg == "--filterID") {
+					if (bFilterType) {
+						std::cerr << "You cannot filter by ID while filtering by type" << std::endl;
+						bError = true;
+						return;
+					}
+
+					bFilterId = true;
+
+					if (!argv[iArg + 1]) {
+						bError = true;
+						return;
+					}
+
+					iFilterId = std::stoi(std::string(argv[iArg + 1]));
+					bSkipOne = true;
+					continue;
+				}
+
+				if (sArg == "-t" || sArg == "--filterType") {
+					if (bFilterId) {
+						std::cerr << "You cannot filter by type while filtering by ID" << std::endl;
+						bError = true;
+						return;
+					}
+
+					bFilterType = true;
+
+					if (!argv[iArg + 1]) {
+						bError = true;
+						return;
+					}
+
+					sFilterType = std::string(argv[iArg + 1]);
+					bSkipOne = true;
+					continue;
+				}
+
+				else {
+					std::cerr << "Unrecognized option: `" << "`" << std::endl;
+					bError = true;
+					return;
 				}
 
 			}

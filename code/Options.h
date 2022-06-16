@@ -1,8 +1,8 @@
-
 #include <iostream>
 #include <string>
 
 #include <set>
+#include <vector>
 
 #ifndef OPTIONS_H
 #define OPTIONS_H
@@ -20,8 +20,19 @@ namespace opt {
 		bool bMaxDepth;
 		int iMaxDepth;
 
+
 		bool bNoDuplicates;
 		std::set<int> treated;
+
+
+		bool bFilterId;
+		int iFilterId;
+		std::set<int> containingId;
+
+
+		bool bFilterType;
+		std::string sFilterType;
+		std::vector<int> ofFilteredType;
 
 
 		bool bError;
