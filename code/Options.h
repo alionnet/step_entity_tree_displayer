@@ -39,6 +39,9 @@ namespace opt {
 
 		std::set<int> ofFilteredType;
 
+		bool bOnlyTypes;
+		std::set<std::string> ssTypes;
+
 		bool bError;
 	};
 

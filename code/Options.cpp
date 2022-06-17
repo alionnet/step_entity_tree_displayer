@@ -2,14 +2,15 @@
 
 namespace opt {
 	std::set<std::string> ssFilteredOutTypes({
-
+		
 		});
 
 
 
 	Options::Options() : sFileName(""), bMaxDepth(false), iMaxDepth(0), bError(false), bNoDuplicates(false), treated(std::set<int>()),
 	bFilterId(false), iFilterId(0), containingId(std::set<int>()), bFilterType(false), sFilterType(""), ofFilteredType(std::set<int>()),
-	bFilterOutTypes(false), ssFilteredTypes(std::set<std::string>()){
+	bFilterOutTypes(false), ssFilteredTypes(std::set<std::string>()),
+	bOnlyTypes(false), ssTypes(std::set<std::string>()){
 
 	}
 
@@ -50,7 +51,7 @@ namespace opt {
 				}
 
 				if (sArg == "-i" || sArg == "--filterID") {
-					if (bFilterType || bFilterOutTypes) {
+					if (bFilterType) {
 						std::cerr << "Error: ID filter and type filter are incompatible (for now)" << std::endl;
 						bError = true;
 						return;
@@ -94,12 +95,6 @@ namespace opt {
 				}
 
 				if (sArg == "-T" || sArg == "--filterTypesOut") {
-					if (bFilterId) {
-						std::cerr << "Error: ID filter and type filter are incompatible (for now)" << std::endl;
-						bError = true;
-						return;
-					}
-
 					if (bFilterType) {
 						std::cerr << "Error: filter in and out are incompatible (for now)" << std::endl;
 						bError = true;
@@ -108,6 +103,11 @@ namespace opt {
 
 					bFilterOutTypes = true;
 					ssFilteredTypes = ssFilteredOutTypes;
+					continue;
+				}
+
+				if (sArg == "-o" || sArg == "--onlyTypes") {
+					bOnlyTypes = true;
 					continue;
 				}
 

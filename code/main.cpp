@@ -149,6 +149,16 @@ void printEntityTree(const std::map<int, Entity>& entities, const std::set<int> 
 }
 
 
+void printAllTypes(const opt::Options &opts) 
+{
+	std::cout << "Present types are:" << std::endl;
+	for (const std::string& type : opts.ssTypes)
+	{
+		std::cout << type << std::endl;
+	}
+}
+
+
 
 void usage() {
 	std::cerr << "Usage: ./setv filename [options]" << std::endl;
@@ -225,6 +235,16 @@ int main(int argc, char* argv[]) {
 
 
 			std::pair<int, std::string> infos = entityNumberAndName(sSavedLine);
+			if (opts.bOnlyTypes) 
+			{
+				if (opts.ssTypes.find(infos.second) == opts.ssTypes.end())
+				{
+					opts.ssTypes.insert(infos.second);
+				}
+				continue;
+			}
+
+
 			if (opts.bFilterType && infos.second == opts.sFilterType)
 			{
 				opts.ofFilteredType.insert(infos.first);
@@ -234,6 +254,8 @@ int main(int argc, char* argv[]) {
 			{
 				opts.ofFilteredType.insert(infos.first);
 			}
+
+
 
 			if (infos.second == COMPLEX_TYPE) 
 			{
@@ -273,15 +295,25 @@ int main(int argc, char* argv[]) {
 
 		}
 	}
-	else {
+	else 
+	{
 		std::cerr << "Couldn't open file " << sFile << std::endl;
 		return 2;
 	}
 
-	if (opts.bFilterOutTypes) {
+	if (opts.bFilterOutTypes) 
+	{
 		std::cout << "Some entities were removed due to type filter" << std::endl;
 	}
-	printEntityTree(entityReferences, allReferences, opts);
+
+	if (opts.bOnlyTypes)
+	{
+		printAllTypes(opts);
+	}
+	else
+	{
+		printEntityTree(entityReferences, allReferences, opts);
+	}
 
 	ifsFile.close();
 	return 0;
