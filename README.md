@@ -16,6 +16,7 @@ Options can be passed as arguments after the filename. Currently available optio
 - ```-n | --noDuplicates```: Prevents the same entity from being developped more than once, to shrink the output on larger files.
 - ```-i | --filterID  id```: Only displays the trees in which the given entity is referenced.
 - ```-t | --filterType  type```: Only displays the trees from entities of the given type.
+- ```-T | --filterTypesOut```: Will not display a set of given types. The set is currently not passed as command line, and instead defined and filled in ```code\Options.cpp```, where you can edit it to your convenience. 
 Internal treatment and parsing are unchanged, only the output is.
 
 ## Limits
@@ -23,6 +24,6 @@ SetD will not display any member variables contained by the entities, it will on
 
 References are displayed in numerical order, and not in the order they actually appear in the STEP file. This is due to the use of sets and maps as a way to provide quicker access to information, since indexes would not mean anything in a vector.
 
-For files with a few thousands or more entities, your standard output may not have enough lines to display all of them (And even then it is quite hard to find what you are looking for). I would advise that you redirect the output to a txt file so everything is available.
+For files with a few thousands or more entities, your standard output may not have enough lines to display all of them (And even then it is quite hard to find what you are looking for). I would advise that you redirect the output to a text file so everything is available.
 
-Optimization measures have been taken, so SetD should be usable on large files without requiring an unreasonnable amount of time. From my testing, a file of 80 000 lines took around 15 seconds to compute, but if you go too far above I can't guarantee a 'fast' output.
+Optimization measures have been taken, so SetD should be usable on large files without requiring an unreasonnable amount of time. From my testing, a file of 80 000 lines took around 15 seconds to compute, but if you go too far above I can't guarantee a 'fast' output. Keep in mind that a huge output will also take some time to write.

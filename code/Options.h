@@ -7,8 +7,9 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
-namespace opt {
+#define COMPLEX_TYPE "C P L X"
 
+namespace opt {
 	struct Options {
 	public:
 		Options();
@@ -32,8 +33,11 @@ namespace opt {
 
 		bool bFilterType;
 		std::string sFilterType;
-		std::vector<int> ofFilteredType;
 
+		bool bFilterOutTypes;
+		std::set<std::string> ssFilteredTypes;
+
+		std::set<int> ofFilteredType;
 
 		bool bError;
 	};

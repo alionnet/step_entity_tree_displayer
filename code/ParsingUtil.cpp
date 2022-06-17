@@ -79,7 +79,7 @@ std::pair<int, std::string> entityNumberAndName(std::string sLine)
 
 	}
 
-	if (bComplexEntity) return { std::stoi(num),"C P L X" }; //Arbitrary name to indicate a complex entity later on -- could not in theory belong to a real STEP entity
+	if (bComplexEntity) return { std::stoi(num),COMPLEX_TYPE }; //Arbitrary name to indicate a complex entity later on -- could not in theory belong to a real STEP entity
 
 	return { std::stoi(num),name };
 }

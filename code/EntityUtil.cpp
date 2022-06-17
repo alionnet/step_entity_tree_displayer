@@ -43,13 +43,13 @@ bool isEntityReferenced(const EntityMap& entities, int iNum, const std::set<int>
 /*
 * @brief Returns all entities which are not referenced by any other one
 */
-std::vector<int> unreferencedEntities(const EntityMap& entities, const std::set<int>& allReferences)
+std::set<int> unreferencedEntities(const EntityMap& entities, const std::set<int>& allReferences)
 {
-	std::vector<int> res;
+	std::set<int> res;
 
 	for (auto entity : entities)
 	{
-		if (!isEntityReferenced(entities, entity.first, allReferences)) res.push_back(entity.first);
+		if (!isEntityReferenced(entities, entity.first, allReferences)) res.insert(entity.first);
 	}
 
 	return res;
@@ -86,16 +86,16 @@ bool isEntityReferencing(const EntityMap& entities, int iEntity, int iToRef)
 	return false;
 }
 
-std::vector<int> unrefEntitiesReferencing(const EntityMap& entities, const std::vector<int>& viUnref, int iToRef) 
+std::set<int> unrefEntitiesReferencing(const EntityMap& entities, const std::set<int>& viUnref, int iToRef) 
 {
-	std::vector<int> res;
+	std::set<int> res;
 
 	for (int iEntity : viUnref) 
 	{
-		if (iEntity == iToRef) res.push_back(iEntity);
+		if (iEntity == iToRef) res.insert(iEntity);
 		if (isEntityReferencing(entities, iEntity, iToRef))
 		{
-			res.push_back(iEntity);
+			res.insert(iEntity);
 		}
 	}
 

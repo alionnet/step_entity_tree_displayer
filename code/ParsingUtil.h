@@ -2,6 +2,7 @@
 #include <set>
 #include <iostream>
 
+#include "Options.h"
 #include "EntityUtil.h"
 
 #ifndef PARSING_UTIL_H

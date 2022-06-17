@@ -31,9 +31,9 @@ typedef std::map<int, Entity> EntityMap;
 bool addEntity(EntityMap& entities, int num, std::string sName);
 bool addReferenceToEntity(EntityMap& entities, int iEntityNum, int iReferenceTo);
 bool isEntityReferenced(const EntityMap& entities, int iNum, const std::set<int>& allReferences);
-std::vector<int> unreferencedEntities(const EntityMap& entities, const std::set<int>& allReferences);
+std::set<int> unreferencedEntities(const EntityMap& entities, const std::set<int>& allReferences);
 
-std::vector<int> unrefEntitiesReferencing(const EntityMap& entities, const std::vector<int>& viUnref, int iToRef);
+std::set<int> unrefEntitiesReferencing(const EntityMap& entities, const std::set<int>& viUnref, int iToRef);
 
 
 #endif // !ENTITY_UTIL_H

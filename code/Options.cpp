@@ -1,8 +1,15 @@
 #include "Options.h"
 
 namespace opt {
+	std::set<std::string> ssFilteredOutTypes({
+
+		});
+
+
+
 	Options::Options() : sFileName(""), bMaxDepth(false), iMaxDepth(0), bError(false), bNoDuplicates(false), treated(std::set<int>()),
-	bFilterId(false), iFilterId(0), containingId(std::set<int>()), bFilterType(false), sFilterType(""), ofFilteredType(std::vector<int>()){
+	bFilterId(false), iFilterId(0), containingId(std::set<int>()), bFilterType(false), sFilterType(""), ofFilteredType(std::set<int>()),
+	bFilterOutTypes(false), ssFilteredTypes(std::set<std::string>()){
 
 	}
 
@@ -43,8 +50,8 @@ namespace opt {
 				}
 
 				if (sArg == "-i" || sArg == "--filterID") {
-					if (bFilterType) {
-						std::cerr << "You cannot filter by ID while filtering by type" << std::endl;
+					if (bFilterType || bFilterOutTypes) {
+						std::cerr << "Error: ID filter and type filter are incompatible (for now)" << std::endl;
 						bError = true;
 						return;
 					}
@@ -63,7 +70,13 @@ namespace opt {
 
 				if (sArg == "-t" || sArg == "--filterType") {
 					if (bFilterId) {
-						std::cerr << "You cannot filter by type while filtering by ID" << std::endl;
+						std::cerr << "Error: ID filter and type filter are incompatible (for now)" << std::endl;
+						bError = true;
+						return;
+					}
+					
+					if (bFilterOutTypes) {
+						std::cerr << "Error: filter in and out are incompatible (for now)" << std::endl;
 						bError = true;
 						return;
 					}
@@ -77,6 +90,24 @@ namespace opt {
 
 					sFilterType = std::string(argv[iArg + 1]);
 					bSkipOne = true;
+					continue;
+				}
+
+				if (sArg == "-T" || sArg == "--filterTypesOut") {
+					if (bFilterId) {
+						std::cerr << "Error: ID filter and type filter are incompatible (for now)" << std::endl;
+						bError = true;
+						return;
+					}
+
+					if (bFilterType) {
+						std::cerr << "Error: filter in and out are incompatible (for now)" << std::endl;
+						bError = true;
+						return;
+					}
+
+					bFilterOutTypes = true;
+					ssFilteredTypes = ssFilteredOutTypes;
 					continue;
 				}
 

@@ -28,6 +28,10 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, op
 
 
 void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e, int iDepth, opt::Options& opts) {
+	if (opts.bFilterOutTypes && opts.ssFilteredTypes.find(e.name) != opts.ssFilteredTypes.end()) {
+		return;
+	}
+
 	if (!opts.bMaxDepth || (opts.bMaxDepth && iDepth < opts.iMaxDepth))
 	{
 		printNTabs(iDepth);
@@ -50,6 +54,10 @@ void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e,
 */
 void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, opt::Options& opts) {
 	auto entity = entities.find(iNum);
+
+	if (opts.bFilterOutTypes && opts.ofFilteredType.find(iNum) != opts.ofFilteredType.end()) {
+		return;
+	}
 
 	if (entity != entities.end()) 
 	{
@@ -99,15 +107,19 @@ void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, op
 #ifdef DEBUG
 		std::cerr << "Error: Entity #" << iNum << " not found. Something probably went very wrong." << std::endl;
 #endif // DEBUG
+		return;
+	}
 
+	if (iDepth == 0) {
+		std::cout << "\\__" << std::endl;
 	}
 }
 
 void printEntityTree(const std::map<int, Entity>& entities, const std::set<int> &allReferences, opt::Options &opts) {
-	std::vector<int> viToUse;
-	std::vector<int> viUnref = unreferencedEntities(entities, allReferences);
+	std::set<int> viToUse;
+	std::set<int> viUnref = unreferencedEntities(entities, allReferences);
 
-	std::vector<int>* toUse = &viToUse;
+	std::set<int>* toUse = &viToUse;
 
 	if (opts.bFilterId) {
 		viToUse = unrefEntitiesReferencing(entities, viUnref, opts.iFilterId);
@@ -132,7 +144,7 @@ void printEntityTree(const std::map<int, Entity>& entities, const std::set<int> 
 	for (int iEntity : *toUse)
 	{
 		printEntity(entities, iEntity, 0, opts);
-		std::cout << "\\__" << std::endl;
+		//std::cout << "\\__" << std::endl;
 	}
 }
 
@@ -213,13 +225,17 @@ int main(int argc, char* argv[]) {
 
 
 			std::pair<int, std::string> infos = entityNumberAndName(sSavedLine);
-
 			if (opts.bFilterType && infos.second == opts.sFilterType)
 			{
-				opts.ofFilteredType.push_back(infos.first);
+				opts.ofFilteredType.insert(infos.first);
 			}
 
-			if (infos.second == "C P L X") 
+			if (opts.bFilterOutTypes && opts.ssFilteredTypes.find(infos.second) != opts.ssFilteredTypes.end())
+			{
+				opts.ofFilteredType.insert(infos.first);
+			}
+
+			if (infos.second == COMPLEX_TYPE) 
 			{
 				if (!addEntity(entityReferences, infos.first, ""))
 				{
@@ -262,6 +278,9 @@ int main(int argc, char* argv[]) {
 		return 2;
 	}
 
+	if (opts.bFilterOutTypes) {
+		std::cout << "Some entities were removed due to type filter" << std::endl;
+	}
 	printEntityTree(entityReferences, allReferences, opts);
 
 	ifsFile.close();
