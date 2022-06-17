@@ -17,7 +17,8 @@ Options can be passed as arguments after the filename. Currently available optio
 - ```-i | --filterID  id```: Only displays the trees in which the given entity is referenced.
 - ```-t | --filterType  type```: Only displays the trees from entities of the given type.
 - ```-T | --filterTypesOut```: Will not display a set of given types. The set is currently not passed as command line, and instead defined and filled in ```code\Options.cpp```, where you can edit it to your convenience. 
-Internal treatment and parsing are unchanged for these options, only the output is.
+
+Internal treatment and parsing are unchanged for the aforementionned options, only the output is.
 
 - ```-o | --onlyTypes```: Displays only the entity types used in the file. Fastens treatement by skipping parsing and storage of entity references. Useful to quickly get a grasp on what is used in the file or to find which type you don't know the role of. Ignores all other filters.
 
