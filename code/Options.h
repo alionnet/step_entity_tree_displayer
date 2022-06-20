@@ -33,11 +33,11 @@ namespace opt {
 
 		bool bFilterType;
 		std::string sFilterType;
+		std::set<int> siFilteredIn;
 
 		bool bFilterOutTypes;
 		std::set<std::string> ssFilteredTypes;
-
-		std::set<int> ofFilteredType;
+		std::set<int> siFilteredOut;
 
 		bool bOnlyTypes;
 		std::set<std::string> ssTypes;

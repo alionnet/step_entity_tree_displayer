@@ -55,7 +55,7 @@ void printNumberlessEntity(const std::map<int,Entity>& toRelay, const Entity& e,
 void printEntity(const std::map<int, Entity>& entities, int iNum, int iDepth, opt::Options& opts) {
 	auto entity = entities.find(iNum);
 
-	if (opts.bFilterOutTypes && opts.ofFilteredType.find(iNum) != opts.ofFilteredType.end()) {
+	if (opts.bFilterOutTypes && opts.siFilteredOut.find(iNum) != opts.siFilteredOut.end()) {
 		return;
 	}
 
@@ -130,7 +130,7 @@ void printEntityTree(const std::map<int, Entity>& entities, const std::set<int> 
 		}
 	}
 	else if (opts.bFilterType) {
-		viToUse = opts.ofFilteredType;
+		viToUse = opts.siFilteredIn;
 		if (viToUse.empty())
 		{
 			std::cout << "Specified filter type was not found in the file" << std::endl;
@@ -247,12 +247,12 @@ int main(int argc, char* argv[]) {
 
 			if (opts.bFilterType && infos.second == opts.sFilterType)
 			{
-				opts.ofFilteredType.insert(infos.first);
+				opts.siFilteredIn.insert(infos.first);
 			}
 
 			if (opts.bFilterOutTypes && opts.ssFilteredTypes.find(infos.second) != opts.ssFilteredTypes.end())
 			{
-				opts.ofFilteredType.insert(infos.first);
+				opts.siFilteredOut.insert(infos.first);
 			}
 
 
