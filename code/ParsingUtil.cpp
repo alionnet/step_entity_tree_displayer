@@ -226,6 +226,7 @@ void parseComplexEntity(EntityMap& entities, int iNum, const std::string& sLine,
 			if (luParDepth >= 2 && !bAlreadyPushed)
 			{
 				eComplex.leaves.push_back(eSavedEntity);
+				eSavedEntity = Entity();
 				bAlreadyPushed = true;
 			}
 			--luParDepth;

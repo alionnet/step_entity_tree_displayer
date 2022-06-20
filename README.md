@@ -25,6 +25,8 @@ Internal treatment and parsing are unchanged for the aforementionned options, on
 ## Limits
 SetD will not display any member variables contained by the entities, it will only display references to other entities, whether they are directly a parameter, or in a list in a list in another list, without any visual distinction.
 
+Regarding complex entities, SetD will only display the entities directly referenced in the subentity. It has no way of knowing the parent subentity, so the output will be yours to interpret on this part.
+
 References are displayed in numerical order, and not in the order they actually appear in the STEP file. This is due to the use of sets and maps as a way to provide quicker access to information, since indexes would not mean anything in a vector.
 
 For files with a few thousands or more entities, your standard output may not have enough lines to display all of them (And even then it is quite hard to find what you are looking for). I would advise that you redirect the output to a text file so everything is available.

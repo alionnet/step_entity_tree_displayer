@@ -2,7 +2,8 @@
 
 namespace opt {
 	std::set<std::string> ssFilteredOutTypes({
-		
+		"GLOBAL_UNIT_ASSIGNED_CONTEXT", "GLOBAL_UNCERTAINTY_ASSIGNED_CONTEXT",
+		"CONVERSION_BASED_UNIT", "LENGTH_UNIT", "NAMED_UNIT", "CLOSED_SHELL"
 		});
 
 
