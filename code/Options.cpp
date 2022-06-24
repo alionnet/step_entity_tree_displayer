@@ -10,7 +10,8 @@ namespace opt {
 	Options::Options() : sFileName(""), bMaxDepth(false), iMaxDepth(0), bError(false), bNoDuplicates(false), treated(std::set<int>()),
 	bFilterId(false), iFilterId(0), containingId(std::set<int>()), bFilterType(false), sFilterType(""), siFilteredIn(std::set<int>()),
 	bFilterOutTypes(false), ssFilteredTypes(std::set<std::string>()), siFilteredOut(std::set<int>()),
-	bOnlyTypes(false), ssTypes(std::set<std::string>()){
+	bOnlyTypes(false), ssTypes(std::set<std::string>()),
+	bAP242Products(false) {
 
 	}
 
@@ -100,11 +101,20 @@ namespace opt {
 					continue;
 				}
 
-				else {
-					std::cerr << "Unrecognized option: `" << "`" << std::endl;
-					bError = true;
-					return;
+
+				if (sArg == "--AP242Products") {
+					if (bFilterId || bFilterType) {
+						std::cerr << "AP242 product display is not compatible with id or type filter" << std::endl;
+						bError = true;
+						return;
+					}
+					bAP242Products = true;
+					continue;
 				}
+
+				std::cerr << "Unrecognized option: `" << "`" << std::endl;
+				bError = true;
+				return;
 
 			}
 			catch (...) {

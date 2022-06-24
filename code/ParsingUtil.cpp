@@ -94,6 +94,9 @@ std::set<int> entityReferencesTo(std::string sLine)
 	bool parsingNumber = false;
 	std::string numberParsed;
 
+	//Indicates if current chars are in a string (between pair of simple quotes), and therefore if # should be ignored
+	bool bInString = false;
+
 	for (char c : sLine) {
 
 		//Skips everything before the = to avoid the entity number
@@ -104,6 +107,20 @@ std::set<int> entityReferencesTo(std::string sLine)
 			pastEqual = true;
 			continue;
 		}
+
+		//Exclude chars that are in strings to avoid parsing wrong references
+		if (c == '\'' && !bInString)
+		{
+			bInString = true;
+			continue;
+		}
+
+		if (c == '\'' && bInString) {
+			bInString = false;
+			continue;
+		}
+
+		if (bInString) continue;
 
 		//Now the entity number is passed, we can start looking for references
 
@@ -177,7 +194,7 @@ void parseComplexEntity(EntityMap& entities, int iNum, const std::string& sLine,
 			bParsingName = true;
 			sName += c;
 			eSavedEntity.name = "";
-			eSavedEntity.references.empty();
+			eSavedEntity.references.clear();
 			continue;
 		}
 

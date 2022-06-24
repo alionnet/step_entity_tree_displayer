@@ -42,6 +42,9 @@ namespace opt {
 		bool bOnlyTypes;
 		std::set<std::string> ssTypes;
 
+
+		bool bAP242Products;
+
 		bool bError;
 	};
 

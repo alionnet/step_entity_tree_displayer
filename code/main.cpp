@@ -12,6 +12,32 @@
 #include "EntityUtil.h"
 #include "ParsingUtil.h"
 
+#include "AP242/Product.h"
+
+bool stringContains(const std::string& haystack, const std::string& needle) 
+{
+	bool res = true;
+	for (size_t iChar = 0; iChar < haystack.size(); ++iChar) 
+	{
+		for (size_t iCharNeedle = 0; iCharNeedle < needle.size(); ++iCharNeedle)
+		{
+			if (needle[iCharNeedle] != haystack[iChar + iCharNeedle])
+			{
+				res = false;
+				break;
+			}
+
+			res = true;
+		}
+
+		if (res) return true;
+
+	}
+
+	return false;
+}
+
+
 /*
 * @brief Prints n '\t' for display readability
 */
@@ -149,12 +175,68 @@ void printEntityTree(const std::map<int, Entity>& entities, const std::set<int> 
 }
 
 
+void parseProducts(std::string& sFilePath, ProductMap& products) {
+	std::regex productRegex = std::regex("#[1-9][0-9]*[ \t]*=[ \t]*PRODUCT[(].*;[ \t\n]*");
+	std::string sLine;
+
+	std::ifstream ifsFile;
+	ifsFile.open(sFilePath);
+
+	while (ifsFile)
+	{
+		std::getline(ifsFile, sLine);
+		std::string sSavedLine = "";
+		sSavedLine += sLine;
+
+		//Next line is also part of current line
+		while (sLine.size() == 0 || !isLastNonSpaceSemiColon(sLine)) {
+			std::getline(ifsFile, sLine);
+			sSavedLine += sLine;
+
+			if (!ifsFile) break;
+		}
+
+		if (!std::regex_match(sSavedLine, productRegex)) continue;
+
+		std::size_t id_start = sSavedLine.find_first_of('\''), id_end = sSavedLine.substr(id_start + 1).find_first_of('\'');
+		std::string identifier = sSavedLine.substr(id_start + 1, id_end);
+
+		addProduct(products, identifier);
+	}
+
+	ifsFile.close();
+}
+
 void printAllTypes(const opt::Options &opts) 
 {
 	std::cout << "Present types are:" << std::endl;
 	for (const std::string& type : opts.ssTypes)
 	{
 		std::cout << type << std::endl;
+	}
+}
+
+void printProducts(const ProductMap& products, const EntityMap& entities, const std::set<int>& allReferences, opt::Options& opts)
+{
+	std::set<int> viUnref = unreferencedEntities(entities, allReferences);
+	std::set<int> printed;
+
+	for (const auto& prod : products) {
+		std::cout << "Product `" << prod.first << "`:" << std::endl;
+		for (int i : prod.second.siEntitiesUsing) 
+		{
+			std::set<int> toTreat = unrefEntitiesReferencing(entities, viUnref, i);
+
+			for (int iToTreat : toTreat)
+			{
+				if (!printed.count(iToTreat))
+				{
+					printEntity(entities, iToTreat, 0, opts);
+					printed.insert(iToTreat);
+				}
+			}
+		}
+		std::cout << "End of product `"<< prod.first <<"`" << std::endl << std::endl << std::endl;
 	}
 }
 
@@ -186,11 +268,16 @@ int main(int argc, char* argv[]) {
 
 	std::regex entityRegex = std::regex("#[1-9][0-9]*[ \t]*=[ \t]*.*;[ \t\n]*");
 
-	std::map<int, Entity> entityReferences;
+	EntityMap entityReferences;
 	std::set<int> allReferences;
+	ProductMap products;
 
 	if (ifsFile.is_open()) 
 	{
+		if (opts.bAP242Products) {
+			parseProducts(sFile, products);
+		}
+
 		while (ifsFile) 
 		{
 			++iLineNum;
@@ -255,6 +342,15 @@ int main(int argc, char* argv[]) {
 				opts.siFilteredOut.insert(infos.first);
 			}
 
+			if (opts.bAP242Products) {
+				for (auto& prod : products) {
+					if (stringContains(sSavedLine, prod.first))
+					{
+						prod.second.siEntitiesUsing.insert(infos.first);
+					}
+				}
+			}
+
 
 
 			if (infos.second == COMPLEX_TYPE) 
@@ -290,9 +386,6 @@ int main(int argc, char* argv[]) {
 
 				}
 			}
-
-			
-
 		}
 	}
 	else 
@@ -309,6 +402,10 @@ int main(int argc, char* argv[]) {
 	if (opts.bOnlyTypes)
 	{
 		printAllTypes(opts);
+	}
+	else if (opts.bAP242Products)
+	{
+		printProducts(products, entityReferences, allReferences, opts);
 	}
 	else
 	{

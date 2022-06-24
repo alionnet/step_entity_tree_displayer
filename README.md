@@ -1,5 +1,5 @@
 # StepEntityTreeDisplayer by Antonin Lionnet
-Parses a STEP-encoded file and display recursively all entities and entities that they reference on the standard output. It doesn't care about the EXPRESS Schema that is explictly or implicitly used, as it just requires for the file to follow STEP standard.
+Parses a STEP-encoded file and recursively displays all entities and entities that they reference on the standard output. It doesn't care about the EXPRESS Schema that is explictly or implicitly used, as it just requires for the file to follow STEP standard.
 Analyzed files should be encoded in STEP, and more precisely standard ISO-10303-21.
 
 This is thought as a small help to people who start working with STEP files and need a more global picture of the structure of a given file, since it can be hard to picture the global structure when looking at the raw file.
@@ -19,8 +19,11 @@ Options can be passed as arguments after the filename. Currently available optio
 - ```-T | --filterTypesOut```: Will not display a set of given types. The set is currently not passed as command line, and instead defined and filled in ```code\Options.cpp```, where you can edit it to your convenience. 
 
 Internal treatment and parsing are unchanged for the aforementionned options, only the output is.
-
 - ```-o | --onlyTypes```: Displays only the entity types used in the file. Fastens treatement by skipping parsing and storage of entity references. Useful to quickly get a grasp on what is used in the file or to find which type you don't know the role of. Ignores all other filters.
+
+
+Some options have been added to filter according to schema specific notions (mostly depending on what I needed to do):
+- ```--AP242Prodcuts```: Groups output entity by Product and only displays trees containing entities relating to these products
 
 ## Limits
 SetD will not display any member variables contained by the entities, it will only display references to other entities, whether they are directly a parameter, or in a list in a list in another list, without any visual distinction.
