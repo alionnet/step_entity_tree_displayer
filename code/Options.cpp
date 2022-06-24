@@ -11,7 +11,8 @@ namespace opt {
 	bFilterId(false), iFilterId(0), containingId(std::set<int>()), bFilterType(false), sFilterType(""), siFilteredIn(std::set<int>()),
 	bFilterOutTypes(false), ssFilteredTypes(std::set<std::string>()), siFilteredOut(std::set<int>()),
 	bOnlyTypes(false), ssTypes(std::set<std::string>()),
-	bAP242Products(false) {
+	bAP242Products(false),
+	bAP242ProductNameFilter(false), sProductName("") {
 
 	}
 
@@ -112,6 +113,19 @@ namespace opt {
 					continue;
 				}
 
+				if (sArg == "--AP242ProductsFilterName") {
+					bAP242ProductNameFilter = true;
+
+					if (!argv[iArg + 1]) {
+						bError = true;
+						return;
+					}
+
+					sProductName = std::string(argv[iArg + 1]);
+					bSkipOne = true;
+					continue;
+				}
+
 				std::cerr << "Unrecognized option: `" << "`" << std::endl;
 				bError = true;
 				return;
@@ -122,6 +136,11 @@ namespace opt {
 				bError = true;
 				return;
 			}
+		}
+
+		if (bAP242ProductNameFilter && !bAP242Products) {
+			std::cerr << "Error: cannot filter by AP242 product name if not filtering by AP242 product" << std::endl;
+			bError = true;
 		}
 	}
 } //opt

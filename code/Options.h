@@ -45,6 +45,9 @@ namespace opt {
 
 		bool bAP242Products;
 
+		bool bAP242ProductNameFilter;
+		std::string sProductName;
+
 		bool bError;
 	};
 

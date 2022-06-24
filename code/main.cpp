@@ -221,7 +221,14 @@ void printProducts(const ProductMap& products, const EntityMap& entities, const 
 	std::set<int> viUnref = unreferencedEntities(entities, allReferences);
 	std::set<int> printed;
 
+	if (opts.bAP242ProductNameFilter)
+	{
+		std::cout << "Some products were removed due to product name filter" << std::endl;
+	}
+
 	for (const auto& prod : products) {
+		if (opts.bAP242ProductNameFilter && opts.sProductName != prod.first) continue;
+
 		std::cout << "Product `" << prod.first << "`:" << std::endl;
 		for (int i : prod.second.siEntitiesUsing) 
 		{
@@ -344,7 +351,7 @@ int main(int argc, char* argv[]) {
 
 			if (opts.bAP242Products) {
 				for (auto& prod : products) {
-					if (stringContains(sSavedLine, prod.first))
+					if (std::regex_match(sSavedLine,std::regex(".*=.*[' (]+"+prod.first+"[' )]+.*")))
 					{
 						prod.second.siEntitiesUsing.insert(infos.first);
 					}
