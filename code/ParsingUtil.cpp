@@ -1,15 +1,15 @@
 #include "ParsingUtil.h"
 
 /*
-* @brief Checks if last character on a line which is not a spacing character is a semi-colon
+* @brief Checks if last character on a line which is not a spacing character is a given char
 */
-bool isLastNonSpaceSemiColon(std::string sLine) {
+bool isLastNonSpaceChar(std::string sLine, char c) {
 	std::size_t iLen = sLine.size();
 	for (long long int i = iLen - 1; i >= 0; --i)
 	{
 		if (sLine[i] == ' ' || sLine[i] == '\t' || sLine[i] == '\r' || sLine[i] == '\n') continue;
 
-		if (sLine[i] == ';') return true;
+		if (sLine[i] == c) return true;
 
 		return false;
 	}

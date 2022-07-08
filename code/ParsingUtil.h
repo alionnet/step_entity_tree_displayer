@@ -8,7 +8,7 @@
 #ifndef PARSING_UTIL_H
 #define PARSING_UTIL_H
 
-bool isLastNonSpaceSemiColon(std::string sLine);
+bool isLastNonSpaceChar(std::string sLine, char c);
 std::pair<int, std::string> entityNumberAndName(std::string sLine);
 std::set<int> entityReferencesTo(std::string sLine);
 void parseComplexEntity(EntityMap& entities, int iNum, const std::string& sLine, std::set<int>& allReferences);

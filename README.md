@@ -23,7 +23,8 @@ Internal treatment and parsing are unchanged for the aforementionned options, on
 
 
 Some options have been added to filter according to schema specific notions (mostly depending on what I needed to do):
-- ```--AP242Prodcuts```: Groups output entity by Product and only displays trees containing entities relating to these products
+- ```--AP242Products```: Groups output entity by Product and only displays trees containing entities relating to these products.
+- ```--AP242ProductsFilterName```: While grouping by filter, only displays entities related to a given product name.
 
 ## Limits
 SetD will not display any member variables contained by the entities, it will only display references to other entities, whether they are directly a parameter, or in a list in a list in another list, without any visual distinction.

@@ -185,12 +185,16 @@ void parseProducts(std::string& sFilePath, ProductMap& products) {
 	while (ifsFile)
 	{
 		std::getline(ifsFile, sLine);
+		//Skip comments
+		if (sLine[0] == '/' && sLine[1] == '*') continue;
 		std::string sSavedLine = "";
 		sSavedLine += sLine;
 
 		//Next line is also part of current line
-		while (sLine.size() == 0 || !isLastNonSpaceSemiColon(sLine)) {
+		while (sLine.size() == 0 || !isLastNonSpaceChar(sLine,';')) {
 			std::getline(ifsFile, sLine);
+			//Skip comments
+			if (sLine[0] == '/' && sLine[1] == '*') continue;
 			sSavedLine += sLine;
 
 			if (!ifsFile) break;
@@ -289,12 +293,18 @@ int main(int argc, char* argv[]) {
 		{
 			++iLineNum;
 			std::getline(ifsFile, sLine);
+
+			//Skip comments
+			if (sLine[0] == '/' && sLine[1] == '*') continue;
+
 			std::string sSavedLine;
 			sSavedLine += sLine;
 
 			//Next line is also part of current line
-			while (sLine.size() == 0 || !isLastNonSpaceSemiColon(sLine)) {
+			while (sLine.size() == 0 || !isLastNonSpaceChar(sLine,';')) {
 				std::getline(ifsFile, sLine);
+				//Skip comments
+				if (sLine[0] == '/' && sLine[1] == '*') continue;
 				sSavedLine += sLine;
 				++iLineNum;
 			}
@@ -317,9 +327,6 @@ int main(int argc, char* argv[]) {
 
 			//Look for end of DATA section
 			if (std::regex_match(sSavedLine, std::regex("ENDSEC;[ \t]*"))) break;
-
-			//Skip comments
-			if (sSavedLine[0] == '/' && sSavedLine[1] == '*') continue;
 
 			if (!std::regex_match(sSavedLine, entityRegex)) 
 			{
